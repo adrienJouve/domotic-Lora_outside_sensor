@@ -1,0 +1,6 @@
+[submodule "lib/domotique-arduino-library"]
+	path = lib/domotique-arduino-library
+	url = git@github.com:computingify/domotique-arduino-library.git
+[submodule "lib/arduino-LoRa"]
+	path = lib/arduino-LoRa
+	url = git@github.com:mchacher/arduino-LoRa.git
