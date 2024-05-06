@@ -66,7 +66,7 @@ bool Sensors::parseJsonRxPayload(JsonDocument& payload) {
             mLight.Enable();
         }
         else if (OFF == payload[MSG_LIGHT]) {
-            mLight.Disable();
+            mLight.Enable();
         }
         isMessageReceived = true;
     }

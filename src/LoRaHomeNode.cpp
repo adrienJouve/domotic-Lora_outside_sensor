@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 #include "NodeConfig.h"
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_MSG_ONELINE(x) Serial.print(F(x))
@@ -188,7 +188,7 @@ void LoRaHomeNode::sendToGateway()
   LoRaHomeFrame lhf(MY_NETWORK_ID, mNode.getNodeId(), LH_NODE_ID_GATEWAY, LH_MSG_TYPE_NODE_MSG_ACK_REQ, mNode.getTxCounter());
   // create payload
   // DEBUG_MSG("--- create LoraHomePayload");
-  StaticJsonDocument<128> jsonDoc;
+  // StaticJsonDocument<128> jsonDoc;
   mNode.addJsonTxPayload(jsonDoc);
   serializeJson(jsonDoc, lhf.jsonPayload, LH_FRAME_MAX_PAYLOAD_SIZE);
   //add payload to the frame if any

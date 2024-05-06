@@ -19,8 +19,9 @@ Sensors mNode;
 LoRaHomeNode mLoRaHome(mNode);
 
 // sampling management
-unsigned long lastSendTime = 0;    // last send time
-unsigned long lastProcessTime = 0; // last processing time
+unsigned long nextSendTime;    // last send time
+unsigned long nextProcessTime; // last processing time
+bool forceProcessing;
 
 void setup()
 {
@@ -39,6 +40,7 @@ void setup()
 
   // Update Data before start
   mNode.appProcessing();
+  forceProcessing = false;
 }
 
 /**
@@ -48,30 +50,24 @@ void setup()
 */
 void loop()
 {
-  bool isNewMessageReceived(false);
   unsigned long tick = millis();
 
   // Application processing Task
-  if ((tick - lastProcessTime) > mNode.getProcessingTimeInterval()
-    || isNewMessageReceived) {
-    bool isRunFastly = mNode.appProcessing();
+  if (tick  >= nextProcessTime
+    || forceProcessing) {
+    forceProcessing = mNode.appProcessing();
 
-    lastProcessTime = millis();
-
-    // Artificially set the time after ProcessingTimeInterval
-    if (isRunFastly) {
-      lastProcessTime -= mNode.getProcessingTimeInterval();
-    }
+    nextProcessTime = millis() + mNode.getProcessingTimeInterval();
   }
 
   // Send Task
-  if (((tick - lastSendTime) > mNode.getTransmissionTimeInterval())
+  if ((tick >= nextSendTime)
     || (mNode.getTransmissionNowFlag() == true)) {
     mNode.setTransmissionNowFlag(false);
     mLoRaHome.sendToGateway();
-    lastSendTime = millis(); // timestamp the message
+    nextSendTime = millis() + mNode.getTransmissionTimeInterval();
   }
 
   // Receive Task
-  isNewMessageReceived = mLoRaHome.receiveLoraMessage();
+  forceProcessing = mLoRaHome.receiveLoraMessage();
 }
