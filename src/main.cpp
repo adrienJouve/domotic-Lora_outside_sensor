@@ -5,11 +5,13 @@
 #include <SPI.h>
 #include "sensors.h"
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_MSG(x) Serial.println(F(x))
 #define DEBUG_MSG_VAR(x) Serial.println(x)
+#define DEBUG_MSG_ONE_LN(x) Serial.print(x)
+unsigned int i;
 #else
 #define DEBUG_MSG(x) // define empty, so macro does nothing
 #endif
@@ -51,6 +53,14 @@ void setup()
 void loop()
 {
   unsigned long tick = millis();
+
+#ifdef DEBUG
+  if(1000 < i){
+    DEBUG_MSG_ONE_LN(".");
+    i = 0;
+  }
+  i++;
+#endif
 
   // Application processing Task
   if (tick  >= nextProcessTime

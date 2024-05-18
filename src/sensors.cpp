@@ -45,10 +45,14 @@ void Sensors::appSetup() {
 void Sensors::addJsonTxPayload(JsonDocument& payload) {
 
     payload[MSG_LUX] = mLux.Get();
+    // DEBUG_MSG("Lux: ");
+    // DEBUG_MSG_VAR(mLux.Get());
     payload[MSG_HUMIDITY] = mTempHumidity.readHumidity();
+    // DEBUG_MSG("Humidity: ");
+    // DEBUG_MSG_VAR(mTempHumidity.readHumidity());
     payload[MSG_TEMP] = mTempHumidity.readTemperature();
-    payload[MSG_LIGHT_STATE] = mLight.GetState();
-    serializeJson(payload, Serial);
+    // DEBUG_MSG("Temperature: ");
+    // DEBUG_MSG_VAR(mTempHumidity.readTemperature());
 }
 
 /**
@@ -65,15 +69,11 @@ bool Sensors::parseJsonRxPayload(JsonDocument& payload) {
         if (ON == payload[MSG_LIGHT]) {
             mLight.Enable();
         }
-        else if (OFF == payload[MSG_LIGHT]) {
-            mLight.Enable();
-        }
         isMessageReceived = true;
     }
     if (!payload[MSG_SAMPLING].isNull()) {
         setTransmissionTimeInterval(payload[MSG_SAMPLING]);
     }
-    needTransmissionNow = true;
     return isMessageReceived;
 }
 

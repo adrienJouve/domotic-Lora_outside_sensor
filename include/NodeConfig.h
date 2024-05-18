@@ -2,9 +2,9 @@
 #define NODE_CONFIG_H
 
 const uint8_t NODE_ID = 3;
-const unsigned long PROCESSING_TIME_INTERVAL   = 600000;  // 10 mins
-const unsigned long TRANSMISSION_TIME_INTERVAL = 300000; // 5 mins
-const unsigned long BUTTON_UP_TIME = 1000;  // 1 sec
+const unsigned long PROCESSING_TIME_INTERVAL   = 100;  // 500 ms
+const unsigned long TRANSMISSION_TIME_INTERVAL = 2000;//150000; // 2,5 mins
+const unsigned long BUTTON_UP_TIME = 800;  // 1 sec
 const uint16_t MY_NETWORK_ID = 0xACDC;
 
 // Jeedom Message
@@ -12,6 +12,8 @@ const uint16_t MY_NETWORK_ID = 0xACDC;
 #define MSG_TEMP "temp"
 #define MSG_HUMIDITY "hum"
 #define MSG_LIGHT_STATE "light_state"
+#define MSG_SNR "snr"
+#define MSG_RSSI "rssi"
 
 // Jeedom Command
 #define MSG_LIGHT "light"

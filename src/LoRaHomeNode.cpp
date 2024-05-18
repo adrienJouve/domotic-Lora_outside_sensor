@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 #include "NodeConfig.h"
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_MSG_ONELINE(x) Serial.print(F(x))
@@ -113,18 +113,18 @@ void LoRaHomeNode::setup()
     DEBUG_MSG_ONELINE(".");
     delay(500);
   }
-  DEBUG_MSG("--- setSpreadingFactor");
+  // DEBUG_MSG("--- setSpreadingFactor");
   LoRa.setSpreadingFactor(LORA_SPREADING_FACTOR);
-  DEBUG_MSG("--- setSignalBandwidth");
+  // DEBUG_MSG("--- setSignalBandwidth");
   LoRa.setSignalBandwidth(LORA_SIGNAL_BANDWIDTH);
-  DEBUG_MSG("--- setCodingRate4");
+  // DEBUG_MSG("--- setCodingRate");
   LoRa.setCodingRate4(LORA_CODING_RATE_DENOMINATOR);
-  DEBUG_MSG("--- setSyncWord");
+  // DEBUG_MSG("--- setSyncWord");
   // Change sync word (0xF3) to match the receiver
   // The sync word assures you don't get LoRa messages from other LoRa transceivers
   // ranges from 0-0xFF
   LoRa.setSyncWord(LORA_SYNC_WORD);
-  DEBUG_MSG("--- enableCrc");
+  // DEBUG_MSG("--- enableCrc");
   LoRa.enableCrc();
 
   // set in rx mode.
@@ -135,7 +135,7 @@ bool LoRaHomeNode::receiveAck()
 {
   unsigned long ackStartWaitingTime = millis();
   //try to parse packet
-  int packetSize = LoRa.parsePacket();
+  int packetSize(0); // = LoRa.parsePacket();
   LoRaHomeFrame lhf;
   // DEBUG_MSG("LoRaHomeNode::receiveAck");
   // switch to rxMode to receive ACK
@@ -159,8 +159,10 @@ bool LoRaHomeNode::receiveAck()
         {
           if (lhf.counter == mNode.getTxCounter())
           {
-            // DEBUG_MSG("--- good ack received!");
+            DEBUG_MSG("--- good ack received!");
             return true;
+          } else {
+            DEBUG_MSG("--- bad ack received! Txcounter mismatch");
           }
         }
       }
@@ -188,21 +190,42 @@ void LoRaHomeNode::sendToGateway()
   LoRaHomeFrame lhf(MY_NETWORK_ID, mNode.getNodeId(), LH_NODE_ID_GATEWAY, LH_MSG_TYPE_NODE_MSG_ACK_REQ, mNode.getTxCounter());
   // create payload
   // DEBUG_MSG("--- create LoraHomePayload");
-  // StaticJsonDocument<128> jsonDoc;
+  JsonDocument jsonDoc;
   mNode.addJsonTxPayload(jsonDoc);
+  jsonDoc[MSG_SNR] = LoRa.packetSnr();
+  // DEBUG_MSG("SNR: ");
+  // DEBUG_MSG_VAR(LoRa.packetSnr());
+  jsonDoc[MSG_RSSI] = LoRa.packetRssi();
+  // DEBUG_MSG("RSSI: ");
+  // DEBUG_MSG_VAR(LoRa.packetRssi());
+  serializeJson(jsonDoc, Serial);  //To print json payload
+  DEBUG_MSG(".");
+
   serializeJson(jsonDoc, lhf.jsonPayload, LH_FRAME_MAX_PAYLOAD_SIZE);
   //add payload to the frame if any
   uint8_t size = lhf.serialize(txBuffer);
   // DEBUG_MSG("--- LoraHomeFrame serialized");
   // send the LoRa message until valid ack is received with max retries
+  bool ackReceived(false);
   do
   {
+    DEBUG_MSG_ONELINE("--- Try sending for retry = ");
+    DEBUG_MSG_VAR(retry);
     retry++;
     this->send(txBuffer, size);
-  } while ((receiveAck() == false) && (retry < MAX_RETRY_NO_VALID_ACK));
+    DEBUG_MSG("--- message sent");
+    ackReceived = receiveAck();
+    DEBUG_MSG_ONELINE("--- ackReceived = ");
+    DEBUG_MSG_VAR(ackReceived);
+  } while ((ackReceived == false) && (retry < MAX_RETRY_NO_VALID_ACK));
   // increment TxCounter
   // TODO should only increment TxCounter if msg sent + ack received ... else error
   mNode.incrementTxCounter();
+  if(ackReceived){
+    DEBUG_MSG("--- Send operation Finished => SUCCESS");
+  }else {
+    DEBUG_MSG("--- Send operation Finished => FAILLURE");
+  }
 }
 
 /**
@@ -242,11 +265,7 @@ bool LoRaHomeNode::receiveLoraMessage()
   // check if we can accept the message
   if ((packetSize > LH_FRAME_MAX_SIZE) || (packetSize < LH_FRAME_MIN_SIZE))
   {
-    while (LoRa.available())
-    {
-      // flush Fifo
-      LoRa.read();
-    }
+    flushLoRaFifo();
     return isMessageReceived;
   }
   DEBUG_MSG("LoRaHomeNode::receiveLoraMessage");
@@ -263,7 +282,9 @@ bool LoRaHomeNode::receiveLoraMessage()
   lhf.createFromRxMessage(rxMessage, j, true);
   if (lhf.networkID != MY_NETWORK_ID)
   {
-    DEBUG_MSG("--- ignore message, not the right network ID");
+    flushLoRaFifo();
+    DEBUG_MSG_ONELINE("--- ignore message, not the right network ID: ");
+    DEBUG_MSG_VAR(lhf.networkID);
     return isMessageReceived;
   }
   DEBUG_MSG("--- message received");
@@ -272,6 +293,7 @@ bool LoRaHomeNode::receiveLoraMessage()
   // Am I the node invoked for this messages
   if (nodeInvoked == mNode.getNodeId())
   {
+    JsonDocument jsonDoc;
     // parse JSON message
     DeserializationError error = deserializeJson(jsonDoc, lhf.jsonPayload);
     // deserializeJson error
@@ -294,4 +316,13 @@ bool LoRaHomeNode::receiveLoraMessage()
   }
 
   return isMessageReceived;
+}
+
+void LoRaHomeNode::flushLoRaFifo()
+{
+  while (LoRa.available())
+  {
+    // flush Fifo
+    LoRa.read();
+  }
 }
