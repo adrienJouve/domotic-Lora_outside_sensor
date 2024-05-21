@@ -78,9 +78,7 @@ void loop()
 
     DEBUG_MSG("Send Task");
     mNode.setTransmissionNowFlag(false);
-    if( true == mLoRaHome.sendToGateway(mNode.getJsonTxPayload(), mNode.getTxCounter())) {
-      mNode.incrementTxCounter();
-    }
+    mLoRaHome.sendToGateway(mNode.getJsonTxPayload());
 
     nextSendTime = millis() + mNode.getTransmissionTimeInterval();
     nextSendRetryTime = millis() + mLoRaHome.getRetrySendMessageInterval();
