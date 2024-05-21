@@ -3,7 +3,7 @@
 
 #include <ArduinoJson.h>
 #include <Arduino.h>
-#include <LoRaNode.h>
+#include "loRaOverlay/LoRaNode.h"
 #include "actionner/HBridge.h"
 #include "actionner/PushPullButton.h"
 #include "reader/AnalogInputFiltered.h"
@@ -17,7 +17,7 @@ public:
 
     void appSetup();
     virtual bool appProcessing() override;
-    void addJsonTxPayload(JsonDocument& payload);
+    virtual JsonDocument getJsonTxPayload() override;
     virtual bool parseJsonRxPayload(JsonDocument& payload) override;
 
 private:

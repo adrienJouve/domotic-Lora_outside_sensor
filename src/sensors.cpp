@@ -15,6 +15,7 @@
  * @brief Construct a new Node:: Node object
  **********************************************************************/
 Sensors::Sensors() :
+    LoRaNode(NODE_ID, TRANSMISSION_TIME_INTERVAL, PROCESSING_TIME_INTERVAL, true),
     mLux(PIN_LUX_METER),
     mTempHumidity(PIN_DHT22, DHT22),
     mLight(PIN_LIGHT, BUTTON_UP_TIME)
@@ -26,12 +27,6 @@ Sensors::Sensors() :
 * To be used for applicative setup
 */
 void Sensors::appSetup() {
-    // set the Id of the node
-    setNodeId(NODE_ID);
-    setProcessingTimeInterval(PROCESSING_TIME_INTERVAL);
-    setTransmissionTimeInterval(TRANSMISSION_TIME_INTERVAL);
-    // ask for current state transmission
-    setTransmissionNowFlag(true);
 
     //Initialize Temperature Humidity sensor
     mTempHumidity.begin();
@@ -42,8 +37,8 @@ void Sensors::appSetup() {
 * Add JSON Tx payload messages
 * @param payload the JSON payload to be completed as per application needs
 */
-void Sensors::addJsonTxPayload(JsonDocument& payload) {
-
+JsonDocument Sensors::getJsonTxPayload() {
+    JsonDocument payload;
     payload[MSG_LUX] = mLux.Get();
     // DEBUG_MSG("Lux: ");
     // DEBUG_MSG_VAR(mLux.Get());
@@ -53,6 +48,7 @@ void Sensors::addJsonTxPayload(JsonDocument& payload) {
     payload[MSG_TEMP] = mTempHumidity.readTemperature();
     // DEBUG_MSG("Temperature: ");
     // DEBUG_MSG_VAR(mTempHumidity.readTemperature());
+    return payload;
 }
 
 /**

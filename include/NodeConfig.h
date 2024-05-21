@@ -3,9 +3,8 @@
 
 const uint8_t NODE_ID = 3;
 const unsigned long PROCESSING_TIME_INTERVAL   = 100;  // 500 ms
-const unsigned long TRANSMISSION_TIME_INTERVAL = 2000;//150000; // 2,5 mins
+const unsigned long TRANSMISSION_TIME_INTERVAL = 4000;//150000; // 2,5 mins
 const unsigned long BUTTON_UP_TIME = 800;  // 1 sec
-const uint16_t MY_NETWORK_ID = 0xACDC;
 
 // Jeedom Message
 #define MSG_LUX "lux"
